@@ -1,0 +1,26 @@
+cat > .gitignore <<'EOF'
+# OS
+.DS_Store
+
+# env
+.env
+*.local
+
+# Node
+node_modules/
+npm-debug.log*
+pnpm-lock.yaml
+yarn.lock
+
+# Build outputs
+backend/dist/
+frontend/dist/
+
+# Docker
+**/.dockerignore
+docker-compose.override.yml
+
+# IDE
+.idea/
+.vscode/
+EOF
