@@ -1,0 +1,75 @@
+name: Backend CI
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - "db/**"
+      - ".github/workflows/backend.yml"
+  push:
+    branches: [ main ]
+    paths:
+      - "backend/**"
+      - "db/**"
+      - ".github/workflows/backend.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: vitest (backend + pg)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: fuel
+          POSTGRES_PASSWORD: fuelpass
+          POSTGRES_DB: fueltracker
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U fuel -d fueltracker"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      CI: true
+      NODE_ENV: test
+      SESSION_SECRET: replace_me
+      DATABASE_URL: postgres://fuel:fuelpass@localhost:5432/fueltracker
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..30}; do
+            (echo > /dev/tcp/127.0.0.1/5432) >/dev/null 2>&1 && break
+            echo "⏳ waiting for postgres (attempt $i)"; sleep 1
+          done
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test
