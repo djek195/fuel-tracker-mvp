@@ -9,12 +9,10 @@ import { healthRouter } from "./routes/health.js";
 import { vehiclesRouter } from "./routes/vehicles.js";
 import { fuelRouter } from './routes/fuel.js';
 import { authRouter } from "./routes/auth/index.js";
-import { runMigrations } from "./db/migrate.js";
 
 export async function createApp() {
     const app = express();
 
-    await runMigrations();
 
     // trust proxy (required for secure cookies behind ingress)
     app.set("trust proxy", 1);

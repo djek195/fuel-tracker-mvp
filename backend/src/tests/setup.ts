@@ -4,7 +4,6 @@ import { createApp } from "../app.js";
 
 
 process.env.SESSION_SECRET ??= "test_secret";
-
 process.env.DATABASE_URL ??= process.env.DATABASE_URL || "postgres://fuel:fuelpass@db:5432/fueltracker";
 
 let server: Server;
