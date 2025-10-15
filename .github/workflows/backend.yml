@@ -1,14 +1,14 @@
 name: Backend CI
 
 on:
-  # Trigger on changes to backend, db (migrations), and the workflow itself.
+  # Trigger on changes to backend source, migrations, routes, and workflow itself.
   pull_request:
     paths:
       - "backend/**"
       - "db/**"
       - ".github/workflows/backend.yml"
-      - "db/**/*.sql"       # new: watch specific SQL migrations
-      - "backend/src/routes/**"  # new: watch new routes like vehicles/fuel
+      - "db/**/*.sql"           # watch SQL migration files
+      - "backend/src/routes/**" # watch new routes like vehicles/fuel
   push:
     branches: [ main ]
     paths:
@@ -40,9 +40,9 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U fuel -d fueltracker"
-          --health-interval=5s
-          --health-timeout=5s
+          --health-cmd="pg_isready -U fuel -d fueltracker" \
+          --health-interval=5s \
+          --health-timeout=5s \
           --health-retries=10
 
     env:
@@ -73,10 +73,10 @@ jobs:
             echo "⏳ waiting for postgres (attempt $i)"; sleep 1
           done
 
-      - name: Install deps
+      - name: Install dependencies
         run: npm ci
 
-      # new step: ensure TypeScript sources compile before testing
+      # compile TypeScript before running tests to catch build errors
       - name: Build TypeScript
         run: npm run build --if-present
 
