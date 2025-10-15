@@ -4,14 +4,12 @@ import connectPgSimple from "connect-pg-simple";
 const NODE_ENV = process.env.NODE_ENV ?? "development";
 const SESSION_SECRET = process.env.SESSION_SECRET || "replace_me";
 
-// Reuse existing PG pool if your db layer exports it.
-// Adjust the import path if your pool is elsewhere.
+// Try to reuse the existing pool (not required during build)
 let pool: any = undefined;
 try {
-    ({ pool } = await import("../db.js"));
+    ({ pool } = await import("../db/pool.js"));
 } catch {
-    // pool is optional at build time; connect-pg-simple can create its own pool from DATABASE_URL,
-    // but we prefer reusing the app pool when available.
+    // ok, fallback to DATABASE_URL inside connect-pg-simple
 }
 
 const PgSession = connectPgSimple(session);
@@ -19,12 +17,12 @@ const PgSession = connectPgSimple(session);
 export function makeSessionConfig(): session.SessionOptions {
     return {
         store: new PgSession({
-            // Prefer the already-created Pool if present; otherwise fall back to env config.
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             pool,
-            tableName: "session",
-            createTableIfMissing: true,
-            ttl: 60 * 60 * 24 * 7,
+            schemaName: "public",
+            tableName: "user_sessions",
+            createTableIfMissing: false, // important: avoid race conditions; table is created by migration
+            ttl: 60 * 60 * 24 * 7,       // 7 days
         }),
         secret: SESSION_SECRET,
         name: "sid",
@@ -34,8 +32,7 @@ export function makeSessionConfig(): session.SessionOptions {
             httpOnly: true,
             sameSite: "lax",
             secure: NODE_ENV === "production",
-            // 7 days
-            maxAge: 1000 * 60 * 60 * 24 * 7,
+            maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
         },
     };
 }

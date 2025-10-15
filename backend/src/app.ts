@@ -6,6 +6,8 @@ import { makeSessionConfig } from "./config/session.js";
 import { csrfRouter } from "./middleware/csrf.js";
 import { errorHandler } from "./middleware/error.js";
 import { healthRouter } from "./routes/health.js";
+import { vehiclesRouter } from "./routes/vehicles.js";
+import { fuelRouter } from './routes/fuel.js';
 import { authRouter } from "./routes/auth/index.js";
 import { runMigrations } from "./db/migrate.js";
 
@@ -33,7 +35,13 @@ export async function createApp() {
     app.use("/health", healthRouter);
     app.use("/api/auth", authRouter);
 
-    // 6) Error handler (last)
+    // 6) Vehicles (after auth)
+    app.use("/api/vehicles", vehiclesRouter);
+
+    // 7) Fuel entries (after auth)
+    app.use("/api/fuel", fuelRouter);
+
+    // 8) Error handler (last)
     app.use(errorHandler);
 
     return app;
