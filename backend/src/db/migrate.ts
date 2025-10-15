@@ -1,6 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { pool } from "../db.js";
+import { pool } from "../db/pool.js";
 
 export async function runMigrations() {
     const dir = join(process.cwd(), "src", "db", "migrations");

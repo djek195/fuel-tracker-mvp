@@ -1,17 +1,22 @@
 name: Backend CI
 
 on:
+  # Trigger on changes to backend, db (migrations), and the workflow itself.
   pull_request:
     paths:
       - "backend/**"
       - "db/**"
       - ".github/workflows/backend.yml"
+      - "db/**/*.sql"       # new: watch specific SQL migrations
+      - "backend/src/routes/**"  # new: watch new routes like vehicles/fuel
   push:
     branches: [ main ]
     paths:
       - "backend/**"
       - "db/**"
       - ".github/workflows/backend.yml"
+      - "db/**/*.sql"
+      - "backend/src/routes/**"
 
 permissions:
   contents: read
@@ -70,6 +75,10 @@ jobs:
 
       - name: Install deps
         run: npm ci
+
+      # new step: ensure TypeScript sources compile before testing
+      - name: Build TypeScript
+        run: npm run build --if-present
 
       - name: Run tests
         run: npm run test
